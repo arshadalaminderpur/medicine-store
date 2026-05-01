@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicines</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)),
+            url('https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat fixed;
+            font-family: 'Inter', sans-serif;
+        }
+        .page-shell {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .brand-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(14, 165, 233, 0.35);
+            font-weight: 700;
+        }
+        .brand-title {
+            color: #f8fafc;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            margin-bottom: 0;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="brand-wrap">
+        <div class="brand-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" aria-label="Medical logo">
+                <path d="M8 1a.75.75 0 0 1 .75.75v5.5h5.5a.75.75 0 0 1 0 1.5h-5.5v5.5a.75.75 0 0 1-1.5 0v-5.5h-5.5a.75.75 0 0 1 0-1.5h5.5v-5.5A.75.75 0 0 1 8 1"/>
+            </svg>
+        </div>
+        <h3 class="brand-title">Faiyaz Medical Store</h3>
+    </div>
+    <div class="page-shell">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Available Medicines</h2>
+        <a class="btn btn-outline-primary" th:href="@{/manage}">Manage Stock</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(medicines)}">
+                        <td colspan="3" class="text-center text-muted">No medicines available.</td>
+                    </tr>
+                    <tr th:each="medicine : ${medicines}">
+                        <td th:text="${medicine.name}"></td>
+                        <td th:text="${#numbers.formatDecimal(medicine.price, 1, 2)}"></td>
+                        <td th:text="${medicine.quantity}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>
