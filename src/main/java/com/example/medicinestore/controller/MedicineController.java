@@ -2,6 +2,7 @@ package com.example.medicinestore.controller;
 
 import com.example.medicinestore.entity.Medicine;
 import com.example.medicinestore.service.MedicineService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,7 +46,12 @@ public class MedicineController {
         if (bindingResult.hasErrors()) {
             return "add";
         }
-        medicineService.addMedicine(medicine);
+        try {
+            medicineService.addMedicine(medicine);
+        } catch (IllegalArgumentException ex) {
+            bindingResult.rejectValue("name", "duplicate", ex.getMessage());
+            return "add";
+        }
         redirectAttributes.addFlashAttribute("successMessage", "Medicine added successfully.");
         return "redirect:/manage";
     }
@@ -56,12 +62,84 @@ public class MedicineController {
         return "manage";
     }
 
-    @GetMapping("/sell/{id}")
-    public String sellMedicine(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
-            medicineService.sellMedicine(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Medicine sold successfully.");
-        } catch (IllegalStateException ex) {
+            model.addAttribute("medicine", medicineService.getMedicineById(id));
+            return "edit";
+        } catch (EntityNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/manage";
+        }
+    }
+
+    @PostMapping("/update/{id}")
+    public String updateMedicine(@PathVariable Long id,
+                                 @Valid @ModelAttribute("medicine") Medicine medicine,
+                                 BindingResult bindingResult,
+                                 RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            return "edit";
+        }
+        try {
+            medicineService.updateMedicine(id, medicine);
+            redirectAttributes.addFlashAttribute("successMessage", "Medicine updated successfully.");
+            return "redirect:/manage";
+        } catch (IllegalArgumentException ex) {
+            bindingResult.rejectValue("name", "duplicate", ex.getMessage());
+            return "edit";
+        } catch (EntityNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/manage";
+        }
+    }
+
+    @GetMapping("/sell/{id}")
+    public String showSellForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("medicine", medicineService.getMedicineById(id));
+            model.addAttribute("sellRequest", new SellMedicineRequest());
+            return "sell";
+        } catch (EntityNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/manage";
+        }
+    }
+
+    @PostMapping("/sell/{id}")
+    public String sellMedicine(@PathVariable Long id,
+                               @Valid @ModelAttribute("sellRequest") SellMedicineRequest sellRequest,
+                               BindingResult bindingResult,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
+        Medicine medicine;
+        try {
+            medicine = medicineService.getMedicineById(id);
+        } catch (EntityNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/manage";
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("medicine", medicine);
+            return "sell";
+        }
+
+        try {
+            double totalPrice = medicineService.sellMedicine(id, sellRequest.getQuantityToSell());
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    String.format("Sold %d unit(s) of %s. Total price: %.2f",
+                            sellRequest.getQuantityToSell(),
+                            medicine.getName(),
+                            totalPrice)
+            );
+            return "redirect:/manage";
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            model.addAttribute("medicine", medicine);
+            model.addAttribute("errorMessage", ex.getMessage());
+            return "sell";
+        } catch (EntityNotFoundException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/manage";
