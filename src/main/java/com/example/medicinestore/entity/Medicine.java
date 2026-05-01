@@ -1,23 +1,34 @@
 package com.example.medicinestore.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
+@Table(
+        name = "medicine",
+        uniqueConstraints = @UniqueConstraint(name = "uk_medicine_name", columnNames = "name")
+)
 public class Medicine {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true, length = 100)
     @NotBlank(message = "Medicine name is required")
+    @Size(max = 100, message = "Medicine name is too long")
     private String name;
 
-    @Min(value = 0, message = "Price cannot be negative")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Price cannot be negative")
     private double price;
 
     @Min(value = 0, message = "Quantity cannot be negative")
